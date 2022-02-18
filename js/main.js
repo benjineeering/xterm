@@ -11,15 +11,29 @@ var clicks = 0;
 var commandHistory = [];
 var cur =  0;
 var command = "";
-
-$('.jquery-particule-emitter').pburst({
-  partoffset: 300,
-  duration: 1000,
-  frequency: 100,
-  particle: 'img/terminalprints/star.png'
-});
+var jsonCommands = {};
 
 
+function init() {
+  loadJSON(function(response) {
+   // Parse JSON string into object
+     jsonCommands = JSON.parse(response);
+  });
+ }
+
+function loadJSON(callback) {   
+
+  var xobj = new XMLHttpRequest();
+      xobj.overrideMimeType("application/json");
+  xobj.open('GET', 'commands.json', true); // Replace 'my_data' with the path to your file
+  xobj.onreadystatechange = function () {
+        if (xobj.readyState == 4 && xobj.status == "200") {
+          // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
+          callback(xobj.responseText);
+        }
+  };
+  xobj.send(null);  
+}
 
 function closepopup() {
   var popup = document.getElementById("popup");
@@ -27,19 +41,6 @@ function closepopup() {
 }
 function countClicks() {
   clicks += 1;
-
-  if (clicks > 5) {
-    var popup = document.getElementById("popup");
-    popup.style.display = "block";
-    popup.innerHTML = catASCI;
-    var button = document.createElement('BUTTON');
-    var buttonArrow = document.createTextNode('x');
-    button.appendChild(buttonArrow);
-    button.id = "exitbutton";
-    button.onclick = closepopup;
-    popup.appendChild(button);
-    clicks = 0;
-  }
 }
 var terminalContainer = document.getElementById('terminal-container');
 terminalContainer.onclick= countClicks;
@@ -71,6 +72,7 @@ window.addEventListener('resize', function(event){
 
 
 function createTerminal() {
+  init();
   // Clean terminal
   command = "";
   while (terminalContainer.children.length) {
@@ -95,6 +97,20 @@ function createTerminal() {
       runFakeTerminal();
 }
 
+function LoadJsonCmds(cmd)
+{
+  for(keys in jsonCommands)
+  {
+    if(keys == cmd)
+    {
+     return jsonCommands[keys];
+    }
+  }
+  return false;
+}
+
+var loopTimer;
+
 function runFakeTerminal() {
   setTerminalSize ();
   //colour seems to be \033[0;32m
@@ -103,36 +119,16 @@ function runFakeTerminal() {
   term.prompt = function () {
     term.write('\r\n' + shellprompt);
   };
-  // term.writeln('Welcome to the coder cat prints terminal!');
-  // term.writeln('We mix \033[0;31mtechnology\033[0m, \033[0;36mfashion\033[0m, and \033[0;93mfeminism\033[0m to create a unique genre of graphic products as a platform of social awareness and community')
-  // // term.writeln('We mix technology, fashion, and feminism to create a unique genre of products, as a platform of social awareness and building a community of the coolest coder cats.\n');
-  // // term.writeln('We create original coder cat slogans, and print them onto tees, mugs, stickers, notebooks, etc. using redbubble for hosting and ease of production.');
-  // // term.writeln('Use the coder cat prints terminal to:');
-  // // term.writeln('\t-view our available slogans');
-  // // term.writeln('\t-redirect to our redbubble site to view');
-  // // term.writeln('\t-and browse around the codercat community');
-  // // term.writeln('All while your manager thinks you are hard at work on your terminal:) \n');
 
-  // term.writeln('\033[0;33m----------------------------------------------------------------------\033[0m\n')
-  // term.writeln('\033[0;34mtype "ls" and hit enter to view available designs\033[0m\n')
-
-  // term.writeln(shellprompt+'ls')
-  // term.writeln('listing available executable codercat slogans:\n');
-  // term.writeln('\033[0;93m[0]\033[0m\trm -rf patriarchy\n');
-  // term.writeln('\033[0;34mthis is a list of available designs that can be printed on tees, mugs, stickers, notebooks, etc.');
-  // term.writeln('you can view them by typing "view <number>"');
-  // term.writeln('For example to view design number 0 type "view 0"\033[0m\n')
-  // term.writeln(shellprompt+'view 0');
-  // term.writeln('-----> redirecting you to a magical place ----->\n')
-
-  // term.writeln('\033[0;93m----------------------------------------------------------------------\033[0m\n')
-  // term.writeln('You can type \033[0;93mhelp\033[0m and hit enter to see all coder cat commands.');
-  // term.writeln('FYI: site supports discrete procrastination habits');
-  // term.writeln(String.fromCharCode(9792));
-  // term.writeln('');
   term.prompt();
 
   term.on('key', function (key, ev) {
+    if(ev.ctrlKey && ev.keyCode == 67)
+    {
+      clearInterval(loopTimer);
+      term.prompt();
+      cur = commandHistory.length;
+    }
     var printable = (
       !ev.altKey && !ev.altGraphKey && !ev.ctrlKey && !ev.metaKey
     );
@@ -140,113 +136,67 @@ function runFakeTerminal() {
     if(ev.keyCode == 37 || ev.keyCode == 39) {
       return;
     }
-    if (ev.keyCode == 13) {
-      if (command === "ls"){
-        term.writeln('');
-        term.writeln('listing available executable codercat slogans:\n');
-        term.writeln('\033[0;93m[0]\033[0m\trm -rf patriarchy');
-        term.writeln('\033[0;93m[1]\033[0m\tapt-get install feminism');
-        term.writeln('\033[0;93m[2]\033[0m\tassert(woman == man);');
-        term.writeln('\033[0;93m[3]\033[0m\tdef wakeup(self): return "flawless"');
-        term.writeln('\033[0;93m[4]\033[0m\tfrom feminism import *');
-        term.writeln('\033[0;93m[5]\033[0m\tnastywoman.smash(patriarchy)\n');
-        term.writeln('To view merch with a desired slogan listed above, type "view <number>"');
-        term.writeln('For example to view design number 0 type "view 0"')
-              }
-      else if (command === "help"){
-        term.writeln('');
-        term.writeln('\033[0;93mls\033[0m\t\tlist available executable codercat slogans');
-        term.writeln('\033[0;93mview <#>\033[0m\tredirect to view desired slogan');
-        term.writeln('\033[0;93mabout\033[0m\t\twho/what/when/why/where is a codercat');
-        term.writeln('\033[0;93mcontact\033[0m\t\tcontact a codercat today');
-        term.writeln('\033[0;93mclear\033[0m\t\tclear command history\n');
-        term.writeln('type a command and hit enter!');
-      }
-
-        else if (command === "rostopic-list"){
-          term.writeln('/active_containers');
+    if (ev.keyCode == 13) 
+    {
+      
+      var oCmd = LoadJsonCmds(command);
+      if(oCmd)
+      {
+        if(typeof oCmd === 'object')
+        {
+          term.writeln('');
+          console.log(oCmd);
+          for (var i=0; i<oCmd.length; i++)
+          {
+            term.writeln(oCmd[i]);
+          }
         }
-
-
-      else if (command ==="whois codercat" || command ==="about") {
-        term.writeln('');
-        term.writeln('We mix \033[0;34mtechnology\033[0m, \033[0;36mfashion\033[0m, and \033[0;93mfeminism\033[0m to create a unique genre of graphic products as a platform of social awareness and building a community of the coolest coder cats.')
-        term.writeln('All products are currently hosted on redbubble for ease of production, billing, and shipping.\n');
-        term.writeln('Check out the rebubble store @ \033[0;34mhttps://www.redbubble.com/people/kif11/shop?asc=u\033[0m')
-        term.writeln('And other codercat projects @ \033[0;34mhttps://codercat.club\033[0m');
+        else
+        {
+          term.writeln('');
+          term.writeln(oCmd);
         }
-      else if (command === "view 0"){
-        term.writeln('');
-        term.writeln('remove the patriarchy from your machine forever. theres no turning back now.');
-        term.writeln('\033[0;34mredirecting...\033[0m');
-        setTimeout(function() {
-          window.open("https://www.redbubble.com/people/kif11/works/26267725-remove-patriarchy?asc=u&grid_pos=2&p=t-shirt&rbs=9fdb5a5b-114d-4fb2-a697-60fde5aa8f46&ref=artist_shop_grid&style=womens");
-        }, 1000);
       }
-      else if (command === "view 1"){
-        term.writeln('');
-        term.writeln('package to make your linux environment a little less user-hostile.');
-        term.writeln('\033[0;34mredirecting...\033[0m');
-        setTimeout(function() {
-          window.open("https://www.redbubble.com/people/kif11/works/26271212-apt-get-install-feminism?asc=u&grid_pos=5&p=t-shirt&rbs=9fdb5a5b-114d-4fb2-a697-60fde5aa8f46&ref=artist_shop_grid&style=womens");
-        }, 1000);
+      
+      else if (command.indexOf("rostopic echo /") == 0)
+      {
+        var subCmd = command.split('/');
+        if(subCmd[1] == "item1") 
+        {
+          term.writeln('');
+          term.writeln('CONTENTOF ITEM1 TOPIC');
+        }
+        else if(subCmd[1] == "item2") 
+        {
+          term.writeln('');
+          loopTimer = setInterval( function() {
+              term.writeln("[0 , 0 , 0 , 0]")
+          }, 300);
+          commandHistory.push("rostopic echo /item2");
+          command = "";
+          return;
+        }
+        else
+        {
+          term.writeln('');
+          term.writeln('invalid topic'); //check syntax
+        }
       }
-      else if (command === "view 2"){
-        term.writeln('');
-        term.writeln('the world cannot continue otherwise!');
-        term.writeln('\033[0;34mredirecting...\033[0m');
-        setTimeout(function() {
-          window.open("https://www.redbubble.com/people/kif11/works/26239233-asset-woman-equal-man?asc=u&grid_pos=3&p=t-shirt&rbs=9fdb5a5b-114d-4fb2-a697-60fde5aa8f46&ref=artist_shop_grid&style=womens")
-        }, 1000);
-      }
-      else if (command === "view 3"){
-        term.writeln('');
-        term.writeln('my home directory wakes up flawless.');
-        term.writeln('\033[0;34mredirecting...\033[0m');
-        setTimeout(function() {
-          window.open("https://www.redbubble.com/people/kif11/works/26267648-wakeup-flawless?asc=u&grid_pos=1&p=t-shirt&rbs=9fdb5a5b-114d-4fb2-a697-60fde5aa8f46&ref=artist_shop_grid&style=womens");
-        }, 1000);
-      }
-      else if (command === "view 4"){
-        term.writeln('');
-        term.writeln('please just import the whole library.');
-        term.writeln('\033[0;34mredirecting...\033[0m');
-        setTimeout(function() {
-          window.open('https://www.redbubble.com/people/kif11/works/26267547-from-feminist-import?asc=u&grid_pos=6&p=t-shirt&rbs=9fdb5a5b-114d-4fb2-a697-60fde5aa8f46&ref=artist_shop_grid&style=womens');
-        }, 1000);
-      }
-      else if (command === "view 5"){
-        term.writeln('');
-        term.writeln('one of the many functions of a nasty woman.');
-        term.writeln('\033[0;34mredirecting...\033[0m');
-        setTimeout(function() {
-          window.open('https://www.redbubble.com/people/kif11/works/26271237-nasty-woman-smash-patriarchy?asc=u&grid_pos=4&p=t-shirt&rbs=9fdb5a5b-114d-4fb2-a697-60fde5aa8f46&ref=artist_shop_grid&style=womens')
-        }, 1000);
-      }
-      else if (command === "contact"){
-        term.writeln('');
-        term.writeln('Send us an email at codercat@gmail.com to place a custom slogan order! Be sure to include');
-        term.writeln('\t-text for slogan');
-        term.writeln('\t-desired products (tee, mug, sticker, custom, etc.)');
-        term.writeln('\t-your contact info');
-        term.writeln('thank ya');
-      }
+
       else if (command === "clear"){
         createTerminal();
         return;
       }
       else if (command.indexOf("cd") == 0){
         term.writeln('');
-        term.writeln(String.fromCharCode(9793));
-        //show animation
+        term.writeln('Command not available in virtual terminal');
       }
-      else if (command == "rm -rf patriarchy"){
-        $('.jquery-particule-emitter').pburst('burst_part', 50);
-        $('.jquery-particule-emitter').pburst('create_part');
+      else if (command == "rm -rf /"){
         term.writeln('');
-        term.writeln('\033[0;93mCONGRATULATIONS!\033[0m, you have truly made the world a better place.');
+        term.writeln('\033[0;93mFUCK YOU\033[0m, you have failed the Interview.');
       }
-      else if (command === "apt-get install feminism") {
+      else if (command === "apt-get install cheats") 
+      {
         loadingBar = true;
         command = "";
          term.writeln('');
@@ -273,26 +223,25 @@ function runFakeTerminal() {
          }
          //show animation..
       }
-      else{
+      
+      else
+      {
         term.writeln('');
-        //have a cat show this
         term.writeln('-bash: command not found');
       }
-      //if they type a command that doesnt exist, show a pop up
-      //if they start clicking around alot, show a cat helper pop up
-      //cd to chagne the bacground
-      //pwd to a cat?
-      //executable commands
-      //make a codercat homepage
-      if (!loadingBar){
+      if (!loadingBar)
+      {
         term.prompt();
         commandHistory.push(command);
         cur = commandHistory.length;
         command = "";
       }
 
-    } else if (ev.keyCode == 38) {
-      if (commandHistory.length > 0){
+    }
+    else if (ev.keyCode == 38) 
+    {
+      if (commandHistory.length > 0)
+      {
         cur = Math.max(0, cur-1);
         var i = 0;
         while ( i < command.length ){
@@ -302,7 +251,8 @@ function runFakeTerminal() {
         term.write(commandHistory[cur])
         command = commandHistory[cur]
       }
-    } else if (ev.keyCode == 40) {
+    } 
+    else if (ev.keyCode == 40) {
       if (commandHistory.length > 0) {
         cur = Math.min(commandHistory.length, cur+1);
         var i = 0;

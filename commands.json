@@ -1,0 +1,7 @@
+{
+    "test": "this was a test",
+    "ping": "pinged blah blach",
+    "ls": "Command not available in virtual terminal",
+    "help": "You must ask the right questions...",
+    "rostopic list": ["/item1", "/item2","/item3"]
+}
