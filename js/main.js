@@ -142,45 +142,64 @@ function runFakeTerminal() {
       var oCmd = LoadJsonCmds(command);
       if(oCmd)
       {
-        if(typeof oCmd === 'object')
-        {
-          term.writeln('');
-          console.log(oCmd);
-          for (var i=0; i<oCmd.length; i++)
-          {
-            term.writeln(oCmd[i]);
-          }
-        }
-        else
+        if(typeof oCmd != 'object')
         {
           term.writeln('');
           term.writeln(oCmd);
         }
       }
       
-      else if (command.indexOf("rostopic echo /") == 0)
+      else if (command.indexOf("rostopic") == 0)
       {
-        var subCmd = command.split('/');
-        if(subCmd[1] == "item1") 
+
+        if (command.indexOf("list") == 9)
         {
           term.writeln('');
-          term.writeln('CONTENTOF ITEM1 TOPIC');
-        }
-        else if(subCmd[1] == "item2") 
-        {
-          term.writeln('');
-          loopTimer = setInterval( function() {
-              term.writeln("[0 , 0 , 0 , 0]")
-          }, 300);
-          commandHistory.push("rostopic echo /item2");
+          for(keys in jsonCommands.rostopic)
+          {
+            term.write("/");
+            term.writeln(keys);
+          }
           command = "";
-          return;
         }
-        else
+
+        if (command.indexOf("rostopic info /") == 0)
         {
+          var subCmd = command.split('/');
           term.writeln('');
-          term.writeln('invalid topic'); //check syntax
+          var output = jsonCommands.rostopic[subCmd[1]].info.split("\n");
+          for(i=0; i<output.length; i++)
+          {
+            term.writeln(output[i]);
+          }
+          command = "";
         }
+        else if (command.indexOf("rostopic echo /") == 0)
+        {
+          var subCmd = command.split('/');
+          var jsdata = jsonCommands.rostopic[subCmd[1]]
+          if(jsdata) 
+          {
+            term.writeln('');
+            loopTimer = setInterval( function() {
+              var output = jsdata.data.split("\n");
+              for(i=0; i<output.length; i++)
+              {
+                term.writeln(output[i]);
+              }
+                //term.writeln(jsdata.data)
+            }, 300);
+            commandHistory.push(command);
+            command = "";
+            return;
+          }
+          else
+          {
+            term.writeln('');
+            term.writeln('invalid topic'); //check syntax
+          }
+        }
+
       }
 
       else if (command === "clear"){

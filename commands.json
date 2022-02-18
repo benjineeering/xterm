@@ -1,7 +1,12 @@
 {
     "test": "this was a test",
-    "ping": "pinged blah blach",
-    "ls": "Command not available in virtual terminal",
+    "ping": "pong",
+    "ls": "catkin_backup  catkin_ws  config",
     "help": "You must ask the right questions...",
-    "rostopic list": ["/item1", "/item2","/item3"]
+    "rostopic": 
+    {
+        "scan_front": {"info": "Type: sensor_msgs/LaserScan\nPublishers:\n* /sick300_front (http://toru-0999:15552/)\n\nSubscribers:\n* /rviz_1645099106042227112 (http://192.168.1.106:36449/)\n* /navigation/corridor_navigation (http://toru-0103:36209/)\n* /slam_watchdog (http://toru-0103:40969/)\n* /navigation/navigation_sensors_watchdog (http://toru-0103:46495/)\n* /cartographer (http://toru-0103:39669/)", "data": "linear:\nx: -0.3\ny: 0.0\nz: 0.0\nangular:\nx: 0.0\ny: 0.0\nz: 0.0\n---"},
+        "scan_rear": {},
+        "tower_empty_check": {}
+    }
 }
